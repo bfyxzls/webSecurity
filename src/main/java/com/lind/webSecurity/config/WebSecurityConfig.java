@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -38,6 +39,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http
         .authorizeRequests()
         .antMatchers("/", "/index").permitAll()
+        .antMatchers("/admin/**").hasRole("ADMIN")//按路由授权
         .anyRequest().authenticated()
         .and()
         .formLogin()
@@ -62,13 +64,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
    */
   @Bean
   LindUserNameAuthenticationFilter lindAuthenticationFilter() {
-    LindUserNameAuthenticationFilter phoneAuthenticationFilter = new LindUserNameAuthenticationFilter();
+    LindUserNameAuthenticationFilter lindUserNameAuthenticationFilter = new LindUserNameAuthenticationFilter();
     ProviderManager providerManager =
         new ProviderManager(Collections.singletonList(lindAuthenticationProvider));
-    phoneAuthenticationFilter.setAuthenticationManager(providerManager);
-    phoneAuthenticationFilter.setAuthenticationSuccessHandler(lindAuthenticationSuccessHandler);
-    phoneAuthenticationFilter.setAuthenticationFailureHandler(lindAuthenticationFailHandler);
-    return phoneAuthenticationFilter;
+    lindUserNameAuthenticationFilter.setAuthenticationManager(providerManager);
+    lindUserNameAuthenticationFilter.setAuthenticationSuccessHandler(lindAuthenticationSuccessHandler);
+    lindUserNameAuthenticationFilter.setAuthenticationFailureHandler(lindAuthenticationFailHandler);
+    return lindUserNameAuthenticationFilter;
   }
 
   /**

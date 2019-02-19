@@ -51,6 +51,7 @@ public class LindUserNameAuthenticationFilter extends AbstractAuthenticationProc
 
     authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
 
+    // 向request上下文写授权信息，需要在provider时进行校验它的合法性
     return this.getAuthenticationManager().authenticate(authRequest);
   }
 }

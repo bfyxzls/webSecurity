@@ -6,6 +6,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -47,7 +48,7 @@ public class LindAuthenticationProvider extends AbstractUserDetailsAuthenticatio
           "AbstractUserDetailsAuthenticationProvider.badCredentials",
           "Bad credentials"));
     }
-    // 当前输入的密码与数据库的密码比较
+    // 当前输入的密码(从filter向下传递的变量)与数据库的密码比较
     String presentedPassword = authentication.getCredentials().toString();
 
     if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
@@ -89,5 +90,14 @@ public class LindAuthenticationProvider extends AbstractUserDetailsAuthenticatio
           "UserDetailsService returned null, which is an interface contract violation");
     }
     return loadedUser;
+  }
+
+  /**
+   * 授权持久化.
+   */
+  @Override
+  protected Authentication createSuccessAuthentication(Object principal,
+                                                       Authentication authentication, UserDetails user) {
+    return super.createSuccessAuthentication(principal, authentication, user);
   }
 }

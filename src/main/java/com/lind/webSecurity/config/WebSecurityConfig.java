@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * @EnableWebMvcSecurity 注解开启Spring Security的功能.
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * 指定表单登陆和登陆页面.
  * 指定自定义的成功handler处理方式.
  * @EnableGlobalMethodSecurity注解表示开启@PreAuthorize,@PostAuthorize, @Secured.
+ * 授权执行顺序：filter->provider.retrieveUser->userDetialsService->provider.additionalAuthenticationChecks
  */
 @Configuration
 @EnableWebSecurity
@@ -45,11 +47,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .failureHandler(lindAuthenticationFailHandler)
         .permitAll()
         .and()
-        // .addFilterBefore(lindAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class).authorizeRequests()
+        .addFilterAt(lindAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class).authorizeRequests().and()
         .logout()
         .permitAll();
   }
 
+  /**
+   * 自定义的Filter.
+   * AuthenticationFilter默认是：UsernamePasswordAuthenticationFilter.https://github.com/spring-projects/spring-security/blob/ec970c9b8e7c2d669bc80b1bd21ad3ba91a20461/web/src/main/java/org/springframework/security/web/authentication/UsernamePasswordAuthenticationFilter.java
+   * AuthenticationProvider默认是：DaoAuthenticationProvider.https://github.com/spring-projects/spring-security/blob/a3210c96d9f6fd64c285d71fd3175072b32c41bf/core/src/main/java/org/springframework/security/authentication/dao/DaoAuthenticationProvider.java
+   * 授权方式get:/login?username=zzl&password=123456
+   *
+   * @return
+   */
   @Bean
   LindUserNameAuthenticationFilter lindAuthenticationFilter() {
     LindUserNameAuthenticationFilter phoneAuthenticationFilter = new LindUserNameAuthenticationFilter();
@@ -61,6 +71,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     return phoneAuthenticationFilter;
   }
 
+  /**
+   * 密码生成策略.
+   *
+   * @return
+   */
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();

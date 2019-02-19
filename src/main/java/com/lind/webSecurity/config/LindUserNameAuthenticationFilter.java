@@ -1,15 +1,13 @@
 package com.lind.webSecurity.config;
 
 import java.io.IOException;
-import java.util.UUID;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -35,47 +33,22 @@ public class LindUserNameAuthenticationFilter extends AbstractAuthenticationProc
     super(new AntPathRequestMatcher("/login", "GET"));
   }
 
-  /**
-   * Performs actual authentication.
-   * <p>
-   * The implementation should do one of the following:
-   * <ol>
-   * <li>Return a populated authentication token for the authenticated user, indicating
-   * successful authentication</li>
-   * <li>Return null, indicating that the authentication process is still in progress.
-   * Before returning, the implementation should perform any additional work required to
-   * complete the process.</li>
-   * <li>Throw an <tt>AuthenticationException</tt> if the authentication process fails</li>
-   * </ol>
-   *
-   * @param request  from which to extract parameters and perform the authentication
-   * @param response the response, which may be needed if the implementation has to do a
-   *                 redirect as part of a multi-stage authentication process (such as OpenID).
-   * @return the authenticated user token, or null if authentication is incomplete.
-   * @throws AuthenticationException if authentication fails.
-   */
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-    String user = request.getParameter("username");
-    String pass = request.getParameter("password");
+    String username = request.getParameter("username");
+    String password = request.getParameter("password");
 
-    if (user == null) {
-      throw new IllegalArgumentException("Failed to get the username");
+    if (username == null) {
+      throw new InternalAuthenticationServiceException("Failed to get the username");
     }
 
-    if (pass == null) {
-      throw new IllegalArgumentException("Failed to get the password");
+    if (password == null) {
+      throw new InternalAuthenticationServiceException("Failed to get the password");
     }
-
-    UserDetails phoneCode = User.builder()
-        .username(user.trim())
-        .password(pass)
-        .build();
 
     UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
-        UUID.randomUUID().toString(), phoneCode);
+        username, password);
 
-    // Allow subclasses to set the "details" property
     authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
 
     return this.getAuthenticationManager().authenticate(authRequest);
